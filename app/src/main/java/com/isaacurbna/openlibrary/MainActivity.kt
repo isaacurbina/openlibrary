@@ -1,8 +1,7 @@
 package com.isaacurbna.openlibrary
 
-import com.isaacurbna.openlibrary.R;
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 

@@ -7,7 +7,7 @@ import retrofit2.http.Query
 interface OpenLibraryService {
 
     companion object {
-        val BASE_URL: String = "http://openlibrary.org";
+        val BASE_URL: String = "http://openlibrary.org"
     }
 
     @GET("/search.json")
