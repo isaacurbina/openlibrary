@@ -8,12 +8,10 @@ import io.reactivex.schedulers.Schedulers
 
 class WebInteractor {
 
-    // TODO: dependency injection
     val openLibraryService by lazy {
         RetrofitFactory.create()
     }
     var disposable: Disposable? = null
-    // TODO: end ^^^
 
     fun search(query: String): Observable<APIResponse>? {
         return openLibraryService.search(query)
