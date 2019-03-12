@@ -1,11 +1,17 @@
-package com.isaacurbna.openlibrary
+package com.isaacurbna.openlibrary.view
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
+import com.isaacurbna.openlibrary.OpenLibraryApplication
+import com.isaacurbna.openlibrary.R
 import com.isaacurbna.openlibrary.io.retrofit.WebInteractor
 import com.isaacurbna.openlibrary.model.APIResponse
+import com.isaacurbna.openlibrary.model.Doc
+import com.isaacurbna.openlibrary.viewmodel.MainActivityViewModel
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import javax.inject.Inject
@@ -18,6 +24,7 @@ class MainActivity : AppCompatActivity() {
 
     // region attributes & variables
     var disposable: Disposable? = null
+    var docList: List<Doc?>? = null
     // endregion
 
     // region dependencies
@@ -31,15 +38,26 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val component = (this.applicationContext as OpenLibraryApplication).getAppComponent()
-        component.inject(this)
+        // inject dependencies
+        (applicationContext as OpenLibraryApplication)
+                .component
+                .inject(this)
+
+        // viewmodel
+        val model = ViewModelProviders
+                .of(this)
+                .get(MainActivityViewModel::class.java)
+        model.getDocList()
+                .observe(this, Observer<List<Doc?>> {
+                    updateUI(it)
+                })
     }
 
     override fun onResume() {
         Log.i(TAG, "onResume: ")
         super.onResume()
-        val observable = webInteractor.search("Isaac Asimov")
-        handleResponse(observable)
+        /*val observable = webInteractor.searchByTitle("Harry Potter")
+        handleResponse(observable)*/
     }
 
     override fun onPause() {
@@ -52,6 +70,11 @@ class MainActivity : AppCompatActivity() {
     // endregion
 
     // region helper methods
+    private fun updateUI(newDocList: List<Doc?>?) {
+        Log.i(TAG, "updateUI: newDocList: " + newDocList)
+        docList = newDocList
+    }
+
     private fun handleResponse(observable: Observable<APIResponse>?) {
         Log.i(TAG, "handleResponse: ")
 
@@ -69,11 +92,7 @@ class MainActivity : AppCompatActivity() {
         Log.i(TAG, "showResult: ")
         Log.i(TAG, "showResult: response.numFound: " + response.numFound)
         Log.i(TAG, "showResult: response.start: " + response.start)
-        if (response.docs != null) {
-            for (doc in response.docs!!) {
-                Log.d(TAG, "doc: " + doc.toString())
-            }
-        }
+        Toast.makeText(this, "found " + response.numFound, Toast.LENGTH_LONG).show()
     }
 
     private fun showError(t: Throwable?) {

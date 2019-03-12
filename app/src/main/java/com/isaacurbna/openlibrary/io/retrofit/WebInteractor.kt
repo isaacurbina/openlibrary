@@ -18,4 +18,16 @@ class WebInteractor {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
     }
+
+    fun searchByAuthor(author: String): Observable<APIResponse>? {
+        return openLibraryService.searchByAuthor(author)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+    }
+
+    fun searchByTitle(title: String): Observable<APIResponse>? {
+        return openLibraryService.searchByTitle(title)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+    }
 }

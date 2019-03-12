@@ -12,9 +12,9 @@ class OpenLibraryApplication : Application() {
         private const val TAG = "OpenLibraryApplication"
     }
 
-    private val component: AppComponent by lazy {
+    val component: AppComponent by lazy {
         DaggerAppComponent.builder()
-                .appModule(AppModule(this))
+                .application(this)
                 .build()
     }
 
@@ -25,7 +25,4 @@ class OpenLibraryApplication : Application() {
     }
     // endregion
 
-    // region dagger
-    fun getAppComponent() = component
-    // endregion
 }
