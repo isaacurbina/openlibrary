@@ -50,7 +50,7 @@ class MainActivityViewModel : AndroidViewModel {
         var list: List<Doc?>? = ArrayList()
         val observable = webInteractor.search(query)
         observable?.subscribe(
-                { result -> list = result.docs },
+                { result -> docList.value = result.docs },
                 { error -> Log.e(TAG, "error loading docs", error) }
         )
         return list
