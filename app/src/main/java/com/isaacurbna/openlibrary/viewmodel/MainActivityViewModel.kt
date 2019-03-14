@@ -11,11 +11,15 @@ import com.isaacurbna.openlibrary.io.retrofit.WebInteractor
 import com.isaacurbna.openlibrary.model.Doc
 import javax.inject.Inject
 
-class MainActivityViewModel : AndroidViewModel {
+class MainActivityViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         private const val TAG = "MainActivityViewModel"
     }
+
+    // region attributes
+    lateinit var query: String
+    // endregion
 
     // region dependencies
     @Inject
@@ -25,20 +29,21 @@ class MainActivityViewModel : AndroidViewModel {
     // region attributes
     private val docList: MutableLiveData<List<Doc?>> by lazy {
         MutableLiveData<List<Doc?>>().also {
-            loadDocs("Harry Potter")
+            loadDocs(query)
         }
     }
     // endregion
 
-    constructor(application: Application) : super(application) {
+    init {
         (getApplication<Application>() as OpenLibraryApplication)
                 .component
                 .inject(this)
     }
 
     // region getters
-    fun getDocList(): LiveData<List<Doc?>> {
-        Log.i(TAG, "getDocList: ")
+    fun getDocList(query: String): LiveData<List<Doc?>> {
+        this.query = query
+        loadDocs(query)
         return docList
     }
     // endregion
@@ -46,8 +51,7 @@ class MainActivityViewModel : AndroidViewModel {
     // region helper methods
     @SuppressLint("CheckResult")
     private fun loadDocs(query: String): List<Doc?>? {
-        Log.i(TAG, "loadDocs: query: " + query)
-        var list: List<Doc?>? = ArrayList()
+        val list: List<Doc?>? = ArrayList()
         val observable = webInteractor.search(query)
         observable?.subscribe(
                 { result -> docList.value = result.docs },

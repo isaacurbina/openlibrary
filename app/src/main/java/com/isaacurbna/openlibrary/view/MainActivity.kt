@@ -4,16 +4,15 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
-import android.widget.Toast
+import android.support.v7.widget.LinearLayoutManager
 import com.isaacurbna.openlibrary.OpenLibraryApplication
 import com.isaacurbna.openlibrary.R
+import com.isaacurbna.openlibrary.adapter.DocAdapter
 import com.isaacurbna.openlibrary.io.retrofit.WebInteractor
-import com.isaacurbna.openlibrary.model.APIResponse
 import com.isaacurbna.openlibrary.model.Doc
 import com.isaacurbna.openlibrary.viewmodel.MainActivityViewModel
-import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
+import kotlinx.android.synthetic.main.activity_main.*
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
@@ -25,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     // region attributes & variables
     var disposable: Disposable? = null
     var docList: List<Doc?>? = null
+    lateinit var model: MainActivityViewModel
     // endregion
 
     // region dependencies
@@ -34,34 +34,19 @@ class MainActivity : AppCompatActivity() {
 
     // region lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.i(TAG, "onCreate: ")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // inject dependencies
-        (applicationContext as OpenLibraryApplication)
-                .component
-                .inject(this)
+        injectDependencies()
 
-        // viewmodel
-        val model = ViewModelProviders
-                .of(this)
-                .get(MainActivityViewModel::class.java)
-        model.getDocList()
-                .observe(this, Observer<List<Doc?>> {
-                    updateUI(it)
-                })
-    }
+        setupViewModel()
 
-    override fun onResume() {
-        Log.i(TAG, "onResume: ")
-        super.onResume()
-        /*val observable = webInteractor.searchByTitle("Harry Potter")
-        handleResponse(observable)*/
+        setClickListeners()
+
+        setupRecyclerView()
     }
 
     override fun onPause() {
-        Log.i(TAG, "onPause: ")
         super.onPause()
         if (disposable != null && !disposable!!.isDisposed) {
             disposable!!.dispose()
@@ -70,35 +55,39 @@ class MainActivity : AppCompatActivity() {
     // endregion
 
     // region helper methods
-    private fun updateUI(newDocList: List<Doc?>?) {
-        Log.i(TAG, "updateUI: newDocList: " + newDocList)
-        docList = newDocList
+    private fun injectDependencies() {
+        // inject dependencies
+        (applicationContext as OpenLibraryApplication)
+                .component
+                .inject(this)
     }
 
-    private fun handleResponse(observable: Observable<APIResponse>?) {
-        Log.i(TAG, "handleResponse: ")
+    private fun setupViewModel() {
+        // viewmodel
+        model = ViewModelProviders
+                .of(this)
+                .get(MainActivityViewModel::class.java)
+    }
 
-        if (observable != null) {
-            disposable = observable.subscribe(
-                    { result -> showResult(result) },
-                    { error -> showError(error) }
-            )
-        } else {
-            Log.w(TAG, "observable is null")
+    private fun setClickListeners() {
+        searchButton.setOnClickListener {
+            // observer for viewmodel/livedata changes
+            model.getDocList(queryEditText.text.toString())
+                    .observe(this, Observer<List<Doc?>> {
+                        updateUI(it)
+                    })
         }
     }
 
-    private fun showResult(response: APIResponse) {
-        Log.i(TAG, "showResult: ")
-        Log.i(TAG, "showResult: response.numFound: " + response.numFound)
-        Log.i(TAG, "showResult: response.start: " + response.start)
-        Toast.makeText(this, "found " + response.numFound, Toast.LENGTH_LONG).show()
+    private fun updateUI(newDocList: List<Doc?>?) {
+        docList = newDocList
+        recyclerView.adapter = DocAdapter(docList, this)
+        recyclerView.invalidate()
     }
 
-    private fun showError(t: Throwable?) {
-        Log.i(TAG, "showError: ")
-        Log.e(TAG, "showError: received throwable -> ", t)
-        Toast.makeText(this, t!!.localizedMessage, Toast.LENGTH_LONG).show()
+    private fun setupRecyclerView() {
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = DocAdapter(docList, this)
     }
     // endregion
 
